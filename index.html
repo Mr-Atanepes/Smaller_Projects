@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Мой план питания</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ─── TOKENS ─────────────────────────────────────────────── */
+  :root {
+    --bg:        #0e0f11;
+    --surface:   #16181c;
+    --card:      #1c1f26;
+    --border:    #2a2d36;
+    --accent:    #4ade80;
+    --accent-dim:#22c55e22;
+    --amber:     #fbbf24;
+    --amber-dim: #fbbf2418;
+    --red:       #f87171;
+    --text-1:    #f0f2f5;
+    --text-2:    #8b90a0;
+    --text-3:    #555a68;
+    --radius-sm: 10px;
+    --radius:    16px;
+    --radius-lg: 22px;
+    --shadow:    0 4px 24px #00000055;
+    --font:      'Manrope', sans-serif;
+    --tab-h:     64px;
+  }
+
+  /* ─── RESET ──────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-1);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+  input  { font-family: var(--font); }
+
+  /* ─── LAYOUT ─────────────────────────────────────────────── */
+  #app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* scrollable content area */
+  .view {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px calc(var(--tab-h) + 24px);
+    display: none;
+  }
+  .view.active { display: block; }
+
+  /* ─── HEADER ─────────────────────────────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 2px;
+  }
+
+  /* ─── BOTTOM NAV ─────────────────────────────────────────── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    height: var(--tab-h);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    z-index: 100;
+    padding: 0 8px;
+    gap: 4px;
+  }
+  .nav-btn {
+    flex: 1;
+    height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: var(--radius-sm);
+    color: var(--text-3);
+    transition: color .2s, background .2s;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
+  .nav-btn svg { width: 20px; height: 20px; stroke-width: 2; }
+  .nav-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ─── CARDS ──────────────────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 14px;
+  }
+
+  /* ─── PROGRESS BAR ───────────────────────────────────────── */
+  .progress-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .progress-label { font-size: 13px; color: var(--text-2); font-weight: 500; }
+  .progress-count { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+  .progress-count span { font-size: 14px; font-weight: 500; color: var(--text-2); }
+  .bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width .4s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ─── MEAL ITEMS ─────────────────────────────────────────── */
+  .meal-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity .15s;
+  }
+  .meal-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .meal-item:first-child { padding-top: 0; }
+  .meal-item:active { opacity: .7; }
+
+  .meal-checkbox {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+  }
+  .meal-item.done .meal-checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .meal-item.done .meal-checkbox::after {
+    content: '';
+    width: 10px;
+    height: 7px;
+    border-left: 2.5px solid #000;
+    border-bottom: 2.5px solid #000;
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+
+  .meal-info { flex: 1; min-width: 0; }
+  .meal-type {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 2px;
+  }
+  .meal-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .meal-item.done .meal-name { color: var(--text-3); text-decoration: line-through; }
+  .meal-time {
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  /* ─── DAY SWITCHER ───────────────────────────────────────── */
+  .day-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px;
+    margin-bottom: 16px;
+  }
+  .day-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-2);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    font-size: 18px;
+    transition: all .15s;
+  }
+  .day-btn:active { opacity: .6; }
+  .day-label {
+    flex: 1;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* ─── SECTION DIVIDER ────────────────────────────────────── */
+  .section-divider {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 6px 0 10px;
+  }
+
+  /* ─── TIPS ───────────────────────────────────────────────── */
+  .tip-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tip-item:last-child { border-bottom: none; }
+  .tip-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .tip-text { font-size: 14px; line-height: 1.5; font-weight: 500; }
+  .tip-text strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── GROCERY LIST ───────────────────────────────────────── */
+  .grocery-category {
+    margin-bottom: 18px;
+  }
+  .grocery-cat-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 10px;
+  }
+  .grocery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .grocery-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .grocery-chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-3);
+    flex-shrink: 0;
+  }
+
+  /* ─── COOK PLAN ──────────────────────────────────────────── */
+  .cook-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cook-step:last-child { border-bottom: none; }
+  .cook-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .cook-text { font-size: 14px; line-height: 1.5; font-weight: 500; }
+  .cook-text strong { color: var(--text-1); font-weight: 700; }
+
+  /* ─── WEIGHT LOG ─────────────────────────────────────────── */
+  .weight-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .weight-input {
+    flex: 1;
+    height: 52px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-1);
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .weight-input:focus { border-color: var(--accent); }
+  .weight-save-btn {
+    height: 52px;
+    padding: 0 22px;
+    background: var(--accent);
+    color: #000;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: .2px;
+    transition: opacity .15s, transform .1s;
+  }
+  .weight-save-btn:active { opacity: .8; transform: scale(.97); }
+
+  .weight-log-list { display: flex; flex-direction: column; gap: 8px; }
+  .weight-log-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .wl-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
+  .wl-value { font-size: 18px; font-weight: 800; }
+  .wl-delta { font-size: 12px; font-weight: 700; }
+  .wl-delta.neg { color: var(--accent); }
+  .wl-delta.pos { color: var(--red); }
+
+  .weight-goal-note {
+    background: var(--accent-dim);
+    border: 1px solid #4ade8033;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* ─── EMPTY STATE ────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    color: var(--text-3);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 24px 0 8px;
+  }
+
+  /* ─── BADGE ──────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .3px;
+  }
+  .badge-green { background: var(--accent-dim); color: var(--accent); border: 1px solid #4ade8033; }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid #fbbf2433; }
+
+  /* ─── SCROLL TWEAKS ──────────────────────────────────────── */
+  .view::-webkit-scrollbar { display: none; }
+
+  /* ─── FADE IN ─────────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .view.active { animation: fadeUp .25s ease; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══════════════════════════════════════════════
+       VIEW 1 — TODAY
+  ═══════════════════════════════════════════════ -->
+  <div class="view active" id="view-today">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title" id="today-heading">Сегодня</div>
+        <div class="page-sub" id="today-date"></div>
+      </div>
+      <span class="badge badge-green">~1600 ккал</span>
+    </div>
+
+    <!-- Day switcher -->
+    <div class="day-switcher">
+      <button class="day-btn" id="prev-day">‹</button>
+      <div class="day-label" id="day-label">День 1</div>
+      <button class="day-btn" id="next-day">›</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <div class="progress-label">Выполнено</div>
+        <div class="progress-count" id="progress-count">0 <span>/ 5</span></div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="bar-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Meal list -->
+    <div class="card" id="meal-list">
+      <!-- rendered by JS -->
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       VIEW 2 — GROCERY
+  ═══════════════════════════════════════════════ -->
+  <div class="view" id="view-grocery">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Продукты</div>
+        <div class="page-sub">Что держать дома всегда</div>
+      </div>
+    </div>
+
+    <div class="card" id="grocery-content">
+      <!-- rendered by JS -->
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       VIEW 3 — COOK PLAN
+  ═══════════════════════════════════════════════ -->
+  <div class="view" id="view-cook">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Готовка</div>
+        <div class="page-sub">Раз в 3 дня — и еда готова</div>
+      </div>
+      <span class="badge badge-amber">3 дня</span>
+    </div>
+
+    <div class="card" id="cook-content">
+      <!-- rendered by JS -->
+    </div>
+
+    <div class="section-divider" style="margin-top:4px">Антисрыв</div>
+
+    <div class="card" id="tips-content">
+      <!-- rendered by JS -->
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       VIEW 4 — WEIGHT
+  ═══════════════════════════════════════════════ -->
+  <div class="view" id="view-weight">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Вес</div>
+        <div class="page-sub">Отслеживай прогресс</div>
+      </div>
+    </div>
+
+    <div class="weight-goal-note">
+      <span>🎯</span>
+      Старт: 76 кг · Цель: мягкое снижение
+    </div>
+
+    <div class="weight-input-row">
+      <input
+        type="number"
+        class="weight-input"
+        id="weight-input"
+        placeholder="76.0"
+        step="0.1"
+        min="40"
+        max="200"
+      >
+      <button class="weight-save-btn" id="weight-save-btn">Сохранить</button>
+    </div>
+
+    <div class="section-divider">История</div>
+    <div id="weight-log-list" class="weight-log-list"></div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       BOTTOM NAV
+  ═══════════════════════════════════════════════ -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Сегодня
+    </button>
+    <button class="nav-btn" data-view="grocery">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Продукты
+    </button>
+    <button class="nav-btn" data-view="cook">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a7 7 0 017 7c0 3-2 5-5 6.5V17h1a1 1 0 010 2h-6a1 1 0 010-2h1v-1.5C7 14 5 12 5 9a7 7 0 017-7z"/><line x1="9" y1="21" x2="15" y2="21"/></svg>
+      Готовка
+    </button>
+    <button class="nav-btn" data-view="weight">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Вес
+    </button>
+  </nav>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════════ */
+
+const MEAL_TIMES = {
+  'Завтрак':  '08:00',
+  'Перекус':  '11:00',
+  'Обед':     '13:30',
+  'Перекус2': '16:00',
+  'Ужин':     '19:00',
+};
+
+const WEEK_MENU = [
+  // День 1
+  [
+    { type: 'Завтрак',  name: 'Омлет, хлеб, овощи' },
+    { type: 'Перекус',  name: 'Яблоко + горсть орехов' },
+    { type: 'Обед',     name: 'Курица, гречка, салат' },
+    { type: 'Перекус2', name: 'Йогурт' },
+    { type: 'Ужин',     name: 'Рыба + овощи' },
+  ],
+  // День 2
+  [
+    { type: 'Завтрак',  name: 'Овсянка, мёд, яблоко' },
+    { type: 'Перекус',  name: 'Банан' },
+    { type: 'Обед',     name: 'Говядина, рис, овощи' },
+    { type: 'Перекус2', name: 'Творог' },
+    { type: 'Ужин',     name: 'Курица + салат' },
+  ],
+  // День 3
+  [
+    { type: 'Завтрак',  name: 'Яйца, хлеб, овощи' },
+    { type: 'Перекус',  name: 'Йогурт' },
+    { type: 'Обед',     name: 'Рыба, картофель, овощи' },
+    { type: 'Перекус2', name: 'Яблоко' },
+    { type: 'Ужин',     name: 'Творог + орехи' },
+  ],
+  // День 4
+  [
+    { type: 'Завтрак',  name: 'Овсянка + банан' },
+    { type: 'Перекус',  name: 'Яблоко' },
+    { type: 'Обед',     name: 'Курица + гречка' },
+    { type: 'Перекус2', name: 'Йогурт' },
+    { type: 'Ужин',     name: 'Омлет + овощи' },
+  ],
+  // День 5
+  [
+    { type: 'Завтрак',  name: 'Омлет, хлеб, овощи' },
+    { type: 'Перекус',  name: 'Банан' },
+    { type: 'Обед',     name: 'Говядина + рис' },
+    { type: 'Перекус2', name: 'Творог' },
+    { type: 'Ужин',     name: 'Рыба + овощи' },
+  ],
+  // День 6
+  [
+    { type: 'Завтрак',  name: 'Овсянка + яблоко' },
+    { type: 'Перекус',  name: 'Орехи + фрукт' },
+    { type: 'Обед',     name: 'Курица + картофель' },
+    { type: 'Перекус2', name: 'Йогурт' },
+    { type: 'Ужин',     name: 'Творог' },
+  ],
+  // День 7
+  [
+    { type: 'Завтрак',  name: 'Яйца + овощи' },
+    { type: 'Перекус',  name: 'Фрукт' },
+    { type: 'Обед',     name: 'Рыба, салат, немного риса' },
+    { type: 'Перекус2', name: 'Йогурт' },
+    { type: 'Ужин',     name: 'Творог или курица' },
+  ],
+];
+
+const GROCERY = [
+  {
+    category: 'Белок',
+    items: ['Курица', 'Рыба', 'Говядина', 'Яйца', 'Творог', 'Йогурт'],
+  },
+  {
+    category: 'Углеводы',
+    items: ['Овсянка', 'Гречка', 'Рис', 'Картофель', 'Хлеб ц/з'],
+  },
+  {
+    category: 'Овощи',
+    items: ['Огурцы', 'Помидоры', 'Брокколи', 'Морковь', 'Зелень'],
+  },
+  {
+    category: 'Фрукты & жиры',
+    items: ['Яблоки', 'Бананы', 'Орехи', 'Оливковое масло'],
+  },
+];
+
+const COOK_STEPS = [
+  { text: '<strong>Запеки курицу</strong> — целую грудку в духовке или сковороде. Нарежь, разложи по 3 контейнерам.' },
+  { text: '<strong>Свари крупу</strong> — гречку или рис. Разложи по тем же контейнерам.' },
+  { text: '<strong>Сваренные яйца</strong> — 6 штук в холодильник. Быстрый белок на 3 дня.' },
+  { text: '<strong>Творог и йогурт</strong> — просто купи, хранятся сами. Готовы к перекусам.' },
+  { text: '<strong>Нарежь овощи</strong> — огурец, морковь, помидоры в одну тарелку. Накрой плёнкой.' },
+  { text: 'Итого: <strong>40–50 минут</strong> раз в 3 дня → еда всегда есть → срывов нет.' },
+];
+
+const TIPS = [
+  { icon: '🥦', text: '<strong>Голоден?</strong> Сначала ешь овощи или творог. Потом решай.' },
+  { icon: '🍫', text: '<strong>Хочешь сладкое?</strong> Только после полноценного приёма пищи.' },
+  { icon: '🎉', text: '<strong>1 раз в неделю</strong> можно съесть всё что хочешь — без вины.' },
+  { icon: '⏰', text: '<strong>Каждые 3–4 часа</strong> что-то съесть. Голод = срыв.' },
+  { icon: '🚶', text: '<strong>20–30 мин ходьбы</strong> в день. Можно 2 × 15 мин.' },
+  { icon: '❌', text: '<strong>Нет жёстких запретов.</strong> Любая еда разрешена — в меру.' },
+];
+
+/* ══════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════ */
+
+let currentDay  = 0;   // 0–6
+let checkedMeals = {}; // { "day-mealIndex": true }
+let weightLog   = [];  // [{ date, value }]
+
+function loadState() {
+  try {
+    const cm = localStorage.getItem('nm_checked');
+    if (cm) checkedMeals = JSON.parse(cm);
+    const wl = localStorage.getItem('nm_weight');
+    if (wl) weightLog = JSON.parse(wl);
+    const cd = localStorage.getItem('nm_day');
+    if (cd !== null) currentDay = parseInt(cd, 10);
+  } catch(e) {}
+}
+
+function saveState() {
+  localStorage.setItem('nm_checked', JSON.stringify(checkedMeals));
+  localStorage.setItem('nm_weight',  JSON.stringify(weightLog));
+  localStorage.setItem('nm_day',     String(currentDay));
+}
+
+/* ══════════════════════════════════════════════════════════
+   UI — TODAY VIEW
+══════════════════════════════════════════════════════════ */
+
+function mealKey(dayIdx, mealIdx) {
+  return `${dayIdx}-${mealIdx}`;
+}
+
+function renderToday() {
+  const meals   = WEEK_MENU[currentDay];
+  const total   = meals.length;
+  const done    = meals.filter((_, i) => checkedMeals[mealKey(currentDay, i)]).length;
+  const pct     = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  // Day label
+  document.getElementById('day-label').textContent = `День ${currentDay + 1}`;
+
+  // Progress
+  document.getElementById('progress-count').innerHTML = `${done} <span>/ ${total}</span>`;
+  document.getElementById('bar-fill').style.width = `${pct}%`;
+
+  // Meal list
+  const list = document.getElementById('meal-list');
+  list.innerHTML = '';
+
+  meals.forEach((meal, i) => {
+    const key   = mealKey(currentDay, i);
+    const isDone = !!checkedMeals[key];
+    const typeLabel = meal.type === 'Перекус2' ? 'Перекус' : meal.type;
+    const timeKey   = meal.type === 'Перекус2' ? 'Перекус2' : meal.type;
+    const time  = MEAL_TIMES[timeKey] || '';
+
+    const div = document.createElement('div');
+    div.className = 'meal-item' + (isDone ? ' done' : '');
+    div.innerHTML = `
+      <div class="meal-checkbox"></div>
+      <div class="meal-info">
+        <div class="meal-type">${typeLabel}</div>
+        <div class="meal-name">${meal.name}</div>
+      </div>
+      <div class="meal-time">${time}</div>
+    `;
+    div.addEventListener('click', () => {
+      checkedMeals[key] = !checkedMeals[key];
+      if (!checkedMeals[key]) delete checkedMeals[key];
+      saveState();
+      renderToday();
+    });
+    list.appendChild(div);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   UI — GROCERY VIEW
+══════════════════════════════════════════════════════════ */
+
+function renderGrocery() {
+  const wrap = document.getElementById('grocery-content');
+  wrap.innerHTML = '';
+
+  GROCERY.forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'grocery-category';
+    div.innerHTML = `<div class="grocery-cat-title">${cat.category}</div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'grocery-grid';
+    cat.items.forEach(item => {
+      grid.innerHTML += `
+        <div class="grocery-chip">
+          <div class="dot"></div>
+          ${item}
+        </div>`;
+    });
+    div.appendChild(grid);
+    wrap.appendChild(div);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   UI — COOK + TIPS VIEW
+══════════════════════════════════════════════════════════ */
+
+function renderCook() {
+  const cook = document.getElementById('cook-content');
+  cook.innerHTML = '<div class="card-title">Что приготовить раз в 3 дня</div>';
+
+  COOK_STEPS.forEach((step, i) => {
+    cook.innerHTML += `
+      <div class="cook-step">
+        <div class="cook-num">${i + 1}</div>
+        <div class="cook-text">${step.text}</div>
+      </div>`;
+  });
+
+  const tips = document.getElementById('tips-content');
+  tips.innerHTML = '';
+  TIPS.forEach(tip => {
+    tips.innerHTML += `
+      <div class="tip-item">
+        <div class="tip-icon">${tip.icon}</div>
+        <div class="tip-text">${tip.text}</div>
+      </div>`;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   UI — WEIGHT VIEW
+══════════════════════════════════════════════════════════ */
+
+function renderWeight() {
+  const list = document.getElementById('weight-log-list');
+  if (weightLog.length === 0) {
+    list.innerHTML = '<div class="empty-state">Записей пока нет</div>';
+    return;
+  }
+
+  // show newest first
+  const entries = [...weightLog].reverse();
+  list.innerHTML = '';
+
+  entries.forEach((entry, i) => {
+    const prev = entries[i + 1];
+    let deltaHtml = '';
+    if (prev) {
+      const diff = entry.value - prev.value;
+      const sign = diff > 0 ? '+' : '';
+      const cls  = diff < 0 ? 'neg' : 'pos';
+      deltaHtml = `<span class="wl-delta ${cls}">${sign}${diff.toFixed(1)} кг</span>`;
+    }
+
+    list.innerHTML += `
+      <div class="weight-log-entry">
+        <div class="wl-date">${entry.date}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${deltaHtml}
+          <div class="wl-value">${entry.value} кг</div>
+        </div>
+      </div>`;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   UI — NAV
+══════════════════════════════════════════════════════════ */
+
+const VIEWS = {
+  today:   document.getElementById('view-today'),
+  grocery: document.getElementById('view-grocery'),
+  cook:    document.getElementById('view-cook'),
+  weight:  document.getElementById('view-weight'),
+};
+
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  VIEWS[id].classList.add('active');
+  document.querySelector(`.nav-btn[data-view="${id}"]`).classList.add('active');
+
+  // Scroll to top when switching
+  VIEWS[id].scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   EVENTS
+══════════════════════════════════════════════════════════ */
+
+// Nav buttons
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+// Day switcher
+document.getElementById('prev-day').addEventListener('click', () => {
+  if (currentDay > 0) { currentDay--; saveState(); renderToday(); }
+});
+document.getElementById('next-day').addEventListener('click', () => {
+  if (currentDay < 6) { currentDay++; saveState(); renderToday(); }
+});
+
+// Weight save
+document.getElementById('weight-save-btn').addEventListener('click', () => {
+  const input = document.getElementById('weight-input');
+  const val   = parseFloat(input.value);
+  if (isNaN(val) || val < 40 || val > 200) return;
+
+  const now    = new Date();
+  const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+
+  weightLog.push({ date: dateStr, value: val });
+  saveState();
+  renderWeight();
+
+  input.value = '';
+  input.blur();
+});
+
+// Enter key on weight input
+document.getElementById('weight-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('weight-save-btn').click();
+});
+
+/* ══════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════ */
+
+function init() {
+  loadState();
+
+  // Date header
+  const now = new Date();
+  document.getElementById('today-date').textContent =
+    now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  renderToday();
+  renderGrocery();
+  renderCook();
+  renderWeight();
+}
+
+init();
+</script>
+</body>
+</html>
