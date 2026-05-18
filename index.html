@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0C0A0A" />
+    <title>Atrium — Фокус и трекинг</title>
+    <meta
+      name="description"
+      content="Умный помощник для ежедневных дел и питания. Элегантно, приватно, без отвлекающих факторов."
+    />
+    <style>
+      /* ---------- RESET & BASE ---------- */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: radial-gradient(circle at 15% 5%, #0e0c0c 0%, #030202 100%);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          "Inter",
+          "SF Pro Text",
+          "Roboto",
+          Helvetica,
+          sans-serif;
+        color: #f5efe6;
+        line-height: 1.4;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+
+      /* smooth, modern container */
+      .gateway {
+        max-width: 1280px;
+        width: 100%;
+        margin: 0 auto;
+        backdrop-filter: blur(0px);
+      }
+
+      /* header / branding */
+      .brand {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .brand-icon {
+        font-size: 3rem;
+        filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.3));
+        display: inline-block;
+        margin-bottom: 0.3rem;
+      }
+
+      h1 {
+        font-size: 2.4rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        background: linear-gradient(
+          135deg,
+          #f7e6b3 0%,
+          #e4c277 45%,
+          #c9a03d 100%
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+        margin-bottom: 0.5rem;
+      }
+
+      .tagline {
+        font-size: 1rem;
+        font-weight: 450;
+        color: #b9b09b;
+        letter-spacing: 0.2px;
+        border-top: 1px solid rgba(212, 175, 55, 0.25);
+        display: inline-block;
+        padding-top: 0.6rem;
+      }
+
+      .tagline span {
+        color: #e2bb6f;
+        font-weight: 500;
+      }
+
+      /* grid – mobile first: stack, then side-by-side */
+      .cards-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+        margin: 2rem 0 2.2rem;
+      }
+
+      /* card styling – glassmorphic deep dark with gold aura */
+      .app-card {
+        display: block;
+        text-decoration: none;
+        background: rgba(16, 15, 18, 0.82);
+        backdrop-filter: blur(2px);
+        border: 1px solid rgba(212, 175, 55, 0.28);
+        border-radius: 2rem;
+        padding: 1.6rem 1.6rem 1.8rem 1.8rem;
+        transition: all 0.28s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        box-shadow:
+          0 12px 24px -12px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(212, 175, 55, 0.08) inset;
+        cursor: pointer;
+      }
+
+      /* hover / active states – subtle lift & golden glow */
+      .app-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(212, 175, 55, 0.65);
+        background: rgba(24, 22, 26, 0.9);
+        box-shadow:
+          0 24px 36px -16px rgba(0, 0, 0, 0.7),
+          0 0 0 1px rgba(219, 184, 84, 0.35) inset,
+          0 8px 18px rgba(201, 168, 76, 0.2);
+      }
+
+      .app-card:active {
+        transform: translateY(-2px);
+        transition: transform 0.12s ease;
+      }
+
+      /* inner layout */
+      .card-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .icon-badge {
+        width: 54px;
+        height: 54px;
+        background: linear-gradient(145deg, #242025 0%, #151318 100%);
+        border-radius: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        border: 1px solid rgba(212, 175, 55, 0.45);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4);
+        transition: 0.2s;
+      }
+
+      .app-card:hover .icon-badge {
+        border-color: #e2bb6f;
+        background: #1c191f;
+        transform: scale(0.98);
+      }
+
+      .title-section h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: #f2e5cf;
+        transition: color 0.2s;
+      }
+
+      .app-card:hover .title-section h2 {
+        color: #e9cd8c;
+      }
+
+      .badge-light {
+        background: rgba(212, 175, 55, 0.14);
+        border: 0.5px solid rgba(212, 175, 55, 0.4);
+        border-radius: 30px;
+        padding: 0.2rem 0.8rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #d6b15c;
+        display: inline-block;
+        width: fit-content;
+        margin-top: 6px;
+      }
+
+      .description {
+        font-size: 0.95rem;
+        line-height: 1.45;
+        color: #cbc3b2;
+        margin: 0.2rem 0 0.2rem;
+        font-weight: 450;
+      }
+
+      .feature-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      .feature-chip {
+        background: rgba(32, 30, 36, 0.7);
+        border-radius: 32px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #cfc5ae;
+        border: 0.5px solid rgba(212, 175, 55, 0.2);
+        backdrop-filter: blur(2px);
+      }
+
+      .launch-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        margin-top: 0.65rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #d8b15c;
+        letter-spacing: 0.3px;
+        transition: gap 0.2s;
+      }
+
+      .app-card:hover .launch-arrow {
+        gap: 12px;
+        color: #f0d48c;
+      }
+
+      .launch-arrow span {
+        font-size: 1.1rem;
+        transition: transform 0.2s;
+      }
+
+      /* footer / "Use these Apps Also" callout */
+      .use-section {
+        text-align: center;
+        margin-top: 2.5rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
+      }
+
+      .use-text {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        background: linear-gradient(120deg, #bfa463, #e9cd8c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .use-text i {
+        font-style: normal;
+        font-size: 1.2rem;
+      }
+
+      .micro-footer {
+        margin-top: 1.2rem;
+        font-size: 0.7rem;
+        color: #6c675c;
+        text-align: center;
+      }
+
+      /* responsive breakpoint: side by side cards */
+      @media (min-width: 720px) {
+        body {
+          padding: 2rem;
+        }
+        .cards-grid {
+          flex-direction: row;
+          gap: 2rem;
+        }
+        .app-card {
+          flex: 1;
+          padding: 1.8rem 1.8rem 2rem 1.8rem;
+        }
+        .title-section h2 {
+          font-size: 1.9rem;
+        }
+        .brand-icon {
+          font-size: 3.6rem;
+        }
+        h1 {
+          font-size: 3rem;
+        }
+      }
+
+      /* extra small devices: improve tapping */
+      @media (max-width: 420px) {
+        .app-card {
+          padding: 1.3rem 1.3rem 1.5rem 1.3rem;
+        }
+        .icon-badge {
+          width: 48px;
+          height: 48px;
+          font-size: 1.7rem;
+        }
+        .title-section h2 {
+          font-size: 1.45rem;
+        }
+      }
+
+      /* focus outline for accessibility */
+      .app-card:focus-visible {
+        outline: 3px solid #e2bb6f;
+        outline-offset: 3px;
+        border-radius: 2rem;
+        transform: scale(0.99);
+      }
+
+      /* subtle animated gradient background decoration */
+      .gateway {
+        position: relative;
+      }
+      .gateway::before {
+        content: "";
+        position: fixed;
+        top: -20%;
+        left: -20%;
+        width: 140%;
+        height: 140%;
+        background: radial-gradient(
+          ellipse at 30% 40%,
+          rgba(212, 175, 55, 0.04) 0%,
+          rgba(0, 0, 0, 0) 65%
+        );
+        pointer-events: none;
+        z-index: -1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="gateway">
+      <div class="brand">
+        <div class="brand-icon">⚜️</div>
+        <h1>Внутренний Атриум</h1>
+        <div class="tagline">
+          <span>порядок · ясность · ритм</span>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <!-- КАРТОЧКА 1: Трекер дел (привычки и задачи) -->
+        <a
+          href="./Pillar_Drinkning_Track/Pillar_Track_Control.html"
+          class="app-card"
+          aria-label="Открыть трекер дел"
+        >
+          <div class="card-inner">
+            <div class="card-header">
+              <div class="icon-badge" aria-hidden="true">📋✨</div>
+              <div class="title-section">
+                <h2>Трекер дел</h2>
+                <div class="badge-light">ежедневный контроль</div>
+              </div>
+            </div>
+            <div class="description">
+              Отслеживайте привычки, рутины и цели. Умный календарь, повтор
+              задач, отслеживание серий и фокус на сегодня.
+            </div>
+            <div class="feature-row">
+              <span class="feature-chip">⚡ повтор по дням</span>
+              <span class="feature-chip">📆 календарь истории</span>
+              <span class="feature-chip">🏆 статистика серий</span>
+            </div>
+            <div class="launch-arrow">
+              Открыть <span aria-hidden="true">→</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- КАРТОЧКА 2: Дневник питания (план, продукты, вес) -->
+        <a
+          href="./Diet-companion-app/DietCompanion.html"
+          class="app-card"
+          aria-label="Открыть дневник питания"
+        >
+          <div class="card-inner">
+            <div class="card-header">
+              <div class="icon-badge" aria-hidden="true">🥗⚖️</div>
+              <div class="title-section">
+                <h2>Дневник питания</h2>
+                <div class="badge-light">питание · прогресс</div>
+              </div>
+            </div>
+            <div class="description">
+              Готовый план питания на неделю, список продуктов, гид по
+              заготовкам, дневник веса и советы против срывов.
+            </div>
+            <div class="feature-row">
+              <span class="feature-chip">🍱 меню на 7 дней</span>
+              <span class="feature-chip">🛒 список покупок</span>
+              <span class="feature-chip">📉 дневник веса</span>
+            </div>
+            <div class="launch-arrow">
+              Открыть <span aria-hidden="true">→</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="use-section">
+        <div class="use-text">
+          <i>⚡</i> ИСПОЛЬЗУЙТЕ ЭТИ ПРИЛОЖЕНИЯ <i>⚡</i>
+        </div>
+        <div class="micro-footer">
+          удобные инструменты · приватность · без регистрации
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
